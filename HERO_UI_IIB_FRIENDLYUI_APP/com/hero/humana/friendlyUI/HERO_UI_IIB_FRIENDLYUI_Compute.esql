@@ -1,0 +1,725 @@
+BROKER SCHEMA com.hero.humana.friendlyUI
+
+
+CREATE COMPUTE MODULE HERO_UI_IIB_FRIENDLYUI_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		CREATE FIELD OutputRoot.JSON.Data.payload.encounter;
+		DECLARE Ref_OutEnc 				REFERENCE TO 	OutputRoot.JSON.Data.payload.encounter;
+		DECLARE Ref_Input 				REFERENCE TO 	InputRoot.JSON.Data.EDO;
+		SET Ref_OutEnc.transactionType 				=	'Encounter';
+		SET Ref_OutEnc.transactionSpecification 	= 'Professional';
+		
+		DECLARE In_SegCnt, In_EleCnt 	INTEGER 		1;
+		CALL constructTxDetails(In_SegCnt,In_EleCnt,Ref_OutEnc,Ref_Input);
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE constructTxDetails(INOUT In_SegCnt INTEGER, 
+	IN In_EleCnt INTEGER, INOUT Ref_OutEnc REFERENCE, IN Ref_Input REFERENCE ) BEGIN
+		DECLARE In_innerLoopCnt 		INTEGER 1;
+		DECLARE In_LoopCnt 		INTEGER 1;
+		DECLARE In_LoopCnt1	 INTEGER 1;
+		DECLARE In_SegIndexLoop INTEGER 1;
+		DECLARE In_LoopIndex INTEGER 1 ;
+		SET Environment.Variables.LoopCnt2 =0;
+		SET Environment.Variables.LoopCnt2300 =0;
+		SET Environment.Variables.LoopCnt2300Flag =false;
+		SET Environment.Variables.LoopCnt2300SubCnt =0;
+		
+		SET Environment.Variables.IdList[] = LIST {'st','bht','se'};
+		SET Environment.Variables.FieldList[] = LIST {'st','bht','se'};
+		SET Environment.Variables.LoopIdList[] = LIST {'','',''};
+		SET Environment.Variables.LabelIdList[] = LIST {'transactionSetHeader','beginningOfHierarchicalTransaction','transactionSetTrailer'};
+		SET Environment.Variables.FieldRef[] =  LIST {'transactionSet','transactionSet','transactionSetTrailer'};
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,  Ref_Input.transaction, false ,In_LoopCnt ,false,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		SET Environment.Variables.IdList[] = LIST {'nm1','per'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','per'};
+		SET Environment.Variables.LoopIdList[] = LIST {'1000A','1000A'};
+		SET Environment.Variables.LabelIdList[] = LIST {'submitterName','submitterEDIContactInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'submitterName','submitterName'};
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.transaction ,true ,In_LoopCnt,false ,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 SET In_LoopCnt = In_LoopCnt + 1;
+		SET Environment.Variables.IdList[] = LIST {'nm1'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1'};
+		SET Environment.Variables.LoopIdList[] = LIST {'1000B'};
+		SET Environment.Variables.LabelIdList[] = LIST {'receiverName'};
+		SET Environment.Variables.FieldRef[] =  LIST {'receiverName'};
+		 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.transaction ,true,In_LoopCnt ,false,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex ) ;
+		 SET In_LoopCnt = In_LoopCnt + 1;
+		 
+		SET Environment.Variables.IdList[] = LIST {'hl','prv','cur'};
+		SET Environment.Variables.FieldList[] = LIST {'hl','prv','cur'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2000A','2000A','2000A'};
+		SET Environment.Variables.LabelIdList[] = LIST {'billingProviderHierarchicalLevel','billingProviderSpecialtyInformation','foreignCurrencyInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'billingPrvHierLevel','billingPrvHierLevel','billingPrvHierLevel'};
+		
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.provider ,true,In_LoopCnt, false,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex ) ;
+	
+	 	SET In_LoopCnt = In_LoopCnt + 1;
+		SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref','ref','per'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref','ref','per'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010AA','2010AA','2010AA','2010AA','2010AA'};
+		SET Environment.Variables.LabelIdList[] = LIST {'billingProviderName','billingAddressCityStateZIPCode',
+														'billingProviderTaxIdentification','billingProviderUPINLicenseInformation',
+														'billingProviderContactInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'billingPrvName','billingPrvName','billingPrvName','ref_billingProviderUpin','per_billingProviderContactInfo'};												
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.provider ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+
+	  SET In_LoopCnt1 = In_LoopCnt1 + 1;
+		
+		 SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010AB','2010AB'};
+		SET Environment.Variables.LabelIdList[] = LIST {'payToAddressName','payToAddressAddress'};
+		SET Environment.Variables.FieldRef[] =  LIST {'payToAddrName','payToAddrName'};												
+	
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.provider ,true,In_LoopCnt, true,In_LoopCnt1 ,In_SegIndexLoop,false,In_LoopIndex) ;
+		 
+		  SET In_LoopCnt1 = In_LoopCnt1 + 1;
+		 
+		  SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref','ref'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref','ref'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010AC','2010AC','2010AC','2010AC'};
+		SET Environment.Variables.LabelIdList[] = LIST {'payToPlanName','payToPlanAddress','payToPlanSecondaryIdentification','payToPlanTaxIdentificationNumber'};
+		SET Environment.Variables.FieldRef[] = LIST {'payToPlanName','payToPlanName','payToPlanName','payToPlanName'};
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.provider ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop ,false,In_LoopIndex) ;
+		 
+		 
+		
+		 SET In_LoopCnt1 = 1;
+		 SET Environment.Variables.IdList[] = LIST {'hl','sbr','pat'};
+		SET Environment.Variables.FieldList[] = LIST {'hl','sbr','pat'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2000B','2000B','2000B'};
+		SET Environment.Variables.LabelIdList[] = LIST {'subscriberHierarchicalLevel','subscriberInformation','patientInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'subscriberHierLevel','subscriberHierLevel','subscriberHierLevel'};
+		
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.subscriber ,true,In_LoopCnt, false ,In_LoopCnt1,In_SegIndexLoop,false ,In_LoopIndex) ;
+		
+ 		 SET In_LoopCnt = In_LoopCnt + 1;
+		SET Environment.Variables.IdList[] = LIST {'nm1','n3_n4','dmg','ref','ref','per'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','dmg','ref','ref','per'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010BA','2010BA','2010BA','2010BA','2010BA','2010BA'};
+		SET Environment.Variables.LabelIdList[] = LIST {'subscriberName','subscriberAddressCityStateZIPCode','subscriberDemographicInformation',
+		'subscriberSecondaryIdentification','propertyAndCasualtyClaimNumber','propertyAndCasualtySubscriberContactInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'subscriberName','subscriberName','subscriberName','subscriberName','subscriberName','subscriberName'};
+		
+		 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.subscriber ,true,In_LoopCnt, true  ,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		SET Environment.Variables.IdList[] = LIST {'nm1','n3_n4','ref','ref'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref','ref'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010BB','2010BB','2010BB','2010BB'};
+		SET Environment.Variables.LabelIdList[] = LIST {'payerName','payerAddressCityStateZIPCode','payerSecondaryIdentification',
+		'billingProviderSecondaryIdentification'};
+		SET Environment.Variables.FieldRef[] =  LIST {'payerName','payerName','payerName','payerName'};
+		SET In_LoopCnt1 = In_LoopCnt1 + 1;
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.subscriber ,true,In_LoopCnt ,true,In_LoopCnt1 ,In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		
+--		SET In_LoopCnt1 = 1;
+--		SET Environment.Variables.IdList[] = LIST {'hl','pat'};
+--		SET Environment.Variables.FieldList[] = LIST {'hl','pat'};
+--		SET Environment.Variables.LoopIdList[] = LIST {'2000C','2000C'};
+--		SET Environment.Variables.LabelIdList[] = LIST {'patientHierarchicalLevel','patientInformation'};
+--		SET Environment.Variables.FieldRef[] =  LIST {'patientHierLevel','patientHierLevel'};
+--		
+--		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.dependant.Item[1] ,true,In_LoopCnt, false ,In_LoopCnt1 ,
+--		In_SegIndexLoop,false,In_LoopIndex) ;
+--		
+--		SET In_LoopCnt = In_LoopCnt + 1;											
+ 		DECLARE Ref_dep REFERENCE TO Ref_Input.dependant.Item[1];
+		
+		WHILE(LASTMOVE(Ref_dep)) DO
+		SET In_LoopCnt1 = 1;
+		SET Environment.Variables.IdList[] = LIST {'hl','pat'};
+		SET Environment.Variables.FieldList[] = LIST {'hl','pat'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2000C','2000C'};
+		SET Environment.Variables.LabelIdList[] = LIST {'patientHierarchicalLevel','patientInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'patientHierLevel','patientHierLevel'};
+		
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.dependant.Item[1] ,true,In_LoopCnt, false ,In_LoopCnt1 ,
+		In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		SET In_LoopCnt = In_LoopCnt + 1;	
+	
+	
+		SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','dmg','ref','ref','per'};
+		SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','dmg','ref','ref','per'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2010CA','2010CA','2010CA','2010CA','2010CA','2010CA'};
+		SET Environment.Variables.LabelIdList[] = LIST {'patientName','patientAddressCityStateZIPCode',
+														'patientDemographicInformation','propertyAndCasualtyClaimNumber',
+														'propertyAndCasualtyPatientIdentifer','propertyAndCasualtyPatientContactInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST {'patientName','patientName','patientName','patientName','patientName','patientName'};	
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_dep ,true,In_LoopCnt, true,In_LoopCnt1, In_SegIndexLoop,false,In_LoopIndex) ;
+		SET In_LoopCnt1 = In_LoopCnt1 + 1;
+		SET In_SegIndexLoop = In_SegIndexLoop+ 1;
+		SET In_LoopIndex = In_LoopIndex + 1;
+		MOVE Ref_dep NEXTSIBLING;	
+		END WHILE;
+		SET In_LoopIndex = 1;
+		SET In_SegIndexLoop = 1;
+		SET Environment.Variables.IdList[] = LIST {'clm','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp',
+		'pwk', 'cn1','amt','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','k3','nte','cr1','cr2','crc','crc','crc','crc',
+		'hi','hi','hi','hcp'};
+		SET Environment.Variables.FieldList[] = LIST { 'clm','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp','dtp',
+		'pwk','cn1','amt','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','ref','k3','nte','cr1','cr2','crc','crc','crc','crc',
+		'hi','hi','hi','hcp'};
+		SET Environment.Variables.LoopIdList[] = LIST {'2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300',
+		'2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300','2300'};
+		SET Environment.Variables.LabelIdList[] = LIST { 'claimInformation','onsetOfCurrentIllnessOrSymptomDate','initialTreatmentDate',
+		'lastSeenDate','acuteManifestationDate','accidentDate','lastMenstrualPeriodDate','lastXRayDate','hearingAndVisionPrescriptionDate','disabilityDates',
+		'lastWorkedDate','authorizedReturnToWorkDate','admissionDate','dischargeDate','assumedAndRelinquishedCareDates','propertyAndCasualtyDateOfFirstContactDate',
+		'repricerReceivedDate', 'claimSupplementalInformation','contractInformation','patientAmountPaid','serviceAuthorizationExceptionCode','mandatoryMedicareCrossoverIndicator',
+		'mammographyCertificationNumber','referralNumber','priorAuthorization','payerClaimControlNumber','clinicalLaboratoryImprovementAmendmentNumber',
+		'repricedClaimNumber','adjustedRepricedClaimNumber','investigationalDeviceExemptionNumber','claimIdentifierForTransmissionIntermediaries','medicalRecordNumber','demonstrationProjectIdentifier',
+		'carePlanOversight','fileInformation','claimNote','ambulanceTransportInformation','spinalManipulationServiceInformation','ambulanceCertification',
+		'patientConditionInformationVision','homeboundIndicator','ePSDTReferral','healthCareDiagnosisCode','anesthesiaRelatedProcedure','conditionInformation','claimPricingRepricingInformation'};
+		SET Environment.Variables.FieldRef[] =  LIST { 'claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo',
+		'claimInfo','claimInfo','claimInfo','claimInfo','claimInfo', 'claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo',
+		'claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo',
+		'claimInfo','claimInfo','claimInfo','claimInfo','claimInfo','claimInfo'};
+
+		CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt ,true,In_LoopCnt1 ,In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		
+		
+		
+		DECLARE Ref_refPrvName REFERENCE TO Ref_Input.claim.refPrvName.Item[1];
+			WHILE(LASTMOVE(Ref_refPrvName)) DO
+				SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+				SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+				SET Environment.Variables.LoopIdList[] = LIST {'2310A','2310A'};
+				SET Environment.Variables.LabelIdList[] = LIST {'referringProviderName','referringProviderSecondaryIdentification'};
+		 		SET Environment.Variables.FieldRef[] =  LIST {'',''};												
+		
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_refPrvName ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 SET In_LoopIndex = In_LoopIndex + 1;
+			MOVE Ref_refPrvName NEXTSIBLING;
+	 		END WHILE;		
+	 		SET In_LoopIndex = 1;
+	 		
+	 		SET Environment.Variables.IdList[] = LIST {'nm1','prv','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','prv','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2310B','2310B'};
+			SET Environment.Variables.LabelIdList[] = LIST {'renderingProviderName','renderingProviderSpecialtyInformation','renderingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'rendPrvName','rendPrvName','rendPrvName'};		
+	
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+	
+	
+			SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref','per'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref','per'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2310C','2310C','2310C','2310C'};
+			SET Environment.Variables.LabelIdList[] = LIST {'serviceFacilityLocationName','serviceFacilityLocationAddressCityStateZIPCode','serviceFacilityLocationSecondaryIdentification','serviceFacilityLocationSpecialtyInformation'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'svcFacilityLocation','svcFacilityLocation','svcFacilityLocation','svcFacilityLocation'};		
+	
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+	
+				SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2310D','2310D'};
+			SET Environment.Variables.LabelIdList[] = LIST {'supervisingProviderLocationName','supervisingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'supervisingPrvName','supervisingPrvName'};		
+	
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+	
+			SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2310E','2310E'};
+			SET Environment.Variables.LabelIdList[] = LIST {'ambulancePickUpLocation','ambulancePickUpLocationAddressCityStateZIPCode'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'ambulancePickupLoc','ambulancePickupLoc'};		
+	
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+	
+				SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2310F','2310F'};
+			SET Environment.Variables.LabelIdList[] = LIST {'ambulanceDropOffLocation','ambulanceDropOffLocationAddressCityStateZIPCode'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'ambulanceDropoffLoc','ambulanceDropoffLoc'};		
+	
+			CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Input.claim ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+	
+				
+			DECLARE Ref_OtherSubsInfo REFERENCE TO Ref_Input.otherSubscriberInfo.Item[1];	
+				
+				
+			WHILE(LASTMOVE(Ref_OtherSubsInfo)) DO
+				SET Environment.Variables.IdList[] = LIST {'sbr','cas','amt','amt','amt','oi','moa'};
+				SET Environment.Variables.FieldList[] = LIST {'sbr','cas','amt','amt','amt','oi','moa'};
+				SET Environment.Variables.LoopIdList[] = LIST {'2320','2320','2320','2320','2320','2320','2320'};
+				SET Environment.Variables.LabelIdList[] = LIST {'otherSubscriberInformation','claimLevelAdjustments','coordinationOfBenefitsPayerPaidAmount',
+				'coordinationOfBenefitsPayerTotalNonCoveredAmount','remainingPatientLiability','OtherInsuranceCoverageInformation','outpatientAdjudicationInformation'};
+				 SET Environment.Variables.FieldRef[] =  LIST {'otherSubsInfo','otherSubsInfo','otherSubsInfo','otherSubsInfo','otherSubsInfo','otherSubsInfo','otherSubsInfo'};		
+				 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			 	 
+			 	 SET Environment.Variables.LoopCnt2300Flag = true;
+				IF(In_LoopIndex <> 1) THEN
+					 		SET  Environment.Variables.LoopCnt2300SubCnt = 1;
+					 	
+				END IF;
+			SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330A','2330A','2330A'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherSubscriberName','otherSubscriberAddressCityStateZIPCode','otherSubscriberSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherSubscriberName','otherSubscriberName','otherSubscriberName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+
+			SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','dtp','ref','ref','ref','ref','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','dtp','ref','ref','ref','ref','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330B','2330B','2330B','2330B','2330B','2330B','2330B','2330B'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerName','otherPayerAddressCityStateZIPCode','claimCheckOrRemittanceDate','otherPayerSecondaryIdentification','otherPayerPriorAuthorizationNumber',
+			'otherPayerReferralNumber','otherPayerClaimAdjustmentIndicator','otherPayerClaimControlNumber'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherPayerName','otherPayerName','otherPayerName','otherPayerName','otherPayerName'
+			 ,'otherPayerName','otherPayerName','otherPayerName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+
+		 	 	SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330C','2330C'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerReferringProvider','otherPayerReferringProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'nm_otherPayerReferringProvider','nm_otherPayerReferringProvider'};	
+			 	DECLARE Ref_otherPayRefProvSec REFERENCE TO Ref_OtherSubsInfo.otherPayerRefPrv;
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_otherPayRefProvSec ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+
+--			 
+			 SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330D','2330D'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerRenderingProvider','otherPayerRenderingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherPayerRendPrv','otherPayerRendPrv'};	
+			 
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			 	
+
+				 
+			 SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330E','2330E'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerServiceFacilityLocation','otherPayerServiceFacilityLocationSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherPayerSvcFacilityLoc','otherPayerSvcFacilityLoc'};	
+			 
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			 	 
+
+			 SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330F','2330F'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerSupervisingProvider','otherPayerSupervisingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherPayerSupervisingProvider','otherPayerSupervisingProvider'};	
+			 
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			 	 
+
+				 
+			 SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2330G','2330G'};
+			SET Environment.Variables.LabelIdList[] = LIST {'otherPayerBillingProvider','otherPayerBillingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'otherPayerBillingPrv','otherPayerBillingPrv'};	
+			 
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_OtherSubsInfo ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			 
+			 
+			 SET Environment.Variables.LoopCnt2300Flag = false;
+			 	 
+			 	 SET In_LoopIndex = In_LoopIndex + 1;
+				 MOVE Ref_OtherSubsInfo NEXTSIBLING;
+			END WHILE;
+			SET In_LoopIndex = 1;
+			SET Environment.Variables.LoopCnt2300SubCnt = 0;
+		  	SET Environment.Variables.LoopCnt2300 =0;
+		  		
+			DECLARE Ref_svcLines REFERENCE TO Ref_Input.serviceLines.Item[1];	
+				
+				
+			WHILE(LASTMOVE(Ref_svcLines)) DO
+				DECLARE Ref_Line REFERENCE TO Ref_svcLines.line;
+			SET Environment.Variables.IdList[] = LIST {'lx','sv1','sv5','pwk','pwk','cr1','cr3','crc','crc','crc','dtp','dtp','dtp','dtp','dtp','dtp','dtp'
+			,'dtp','dtp','dtp','qty','qty','mea','cn1','ref','ref','ref','ref','ref','ref','ref','ref','ref','amt','amt','k3','nte','nte','ps1','hcp'};
+			SET Environment.Variables.FieldList[] = LIST {'lx','sv1','sv5','pwk','pwk','cr1','cr3','crc','crc','crc','dtp','dtp','dtp','dtp','dtp','dtp','dtp'
+			,'dtp','dtp','dtp','qty','qty','mea','cn1','ref','ref','ref','ref','ref','ref','ref','ref','ref','amt','amt','k3','nte','nte','ps1','hcp'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400',
+			'2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400','2400',
+			'2400','2400','2400','2400','2400','2400'};
+			SET Environment.Variables.LabelIdList[] = LIST {'serviceLineNumber','professionalService','durableMedicalEquipmentService','lineSupplementalInformation',
+			'durableMedicalEquipmentCertificateOfMedicalNecessityIndicator','ambulanceTransportInformation','durableMedicalEquipmentCertification','ambulanceCertification',
+			'hospiceEmployeeIndicator','conditionIndicatorDurableMedicalEquipment','serviceDate','prescriptionDate','certificationRevisionRecertificationDate',
+			'beginTherapyDate','lastCertificationDate','lastSeenDate','testDate','shippedDate','lastXrayDate','initialTreatmentDate','ambulancePatientCount',
+			'obstetricAnesthesiaAdditionalUnits','testResult','contractInformation','repricedLineItemReferenceNumber','adjustedRepricedLineItemReferenceNumber',
+			'priorAuthorization','lineItemControlNumber','mammographyCertificationNumber','clinicalLaboratoryImprovementAmendmentNumber','referringClinicalLaboratoryImprovementAmendmentFacilityIdentification',
+			'immunizationBatchNumber','referralNumber','salesTaxAmount','postageClaimedAmount','fileInformation','lineNote','thirdPartyOrganizationNotes',
+			'purchasedServiceInformation','linePricingRepricingInformation'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo',
+			 'svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo',
+			 'svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo',
+			 'svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo','svcLineNo'};	
+			 
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+			
+			 	 
+			   SET Environment.Variables.LoopCnt2300Flag = true;
+			  
+			 	IF(In_LoopIndex <> 1) THEN
+			 		SET  Environment.Variables.LoopCnt2300SubCnt = 1;
+			 		
+			 	END IF;
+			 	 	SET Environment.Variables.IdList[] = LIST {'lin','ctp','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'lin','ctp','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2410','2410','2410'};
+			SET Environment.Variables.LabelIdList[] = LIST {'drugIdentification','drugQuantity','prescriptionOrCompoundDrugAssociationNumber'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'drugIdentification','drugIdentification','drugIdentification'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		
+		 	 
+		 
+		 	 	SET Environment.Variables.IdList[] = LIST {'nm1','prv','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','prv','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420A','2420A','2420A'};
+			SET Environment.Variables.LabelIdList[] = LIST {'renderingProviderName','renderingProviderSpecialtyInformation','renderingProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'rendPrvName','rendPrvName','rendPrvName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	  	 
+		 	 
+		 		 	SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420B','2420B'};
+			SET Environment.Variables.LabelIdList[] = LIST {'purchasedServiceProviderName','purchasedServiceProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'purchasedSvcProvName','purchasedSvcProvName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	  	 
+		 			 	SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420C','2420C'};
+			SET Environment.Variables.LabelIdList[] = LIST {'Service Facility Location','Service Facility LocationAddressCityStateZIPCode',
+			'Service Facility LocationSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'svcFacilityLocName','svcFacilityLocName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+		 	 
+		 	 			 	SET Environment.Variables.IdList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','ref'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420D','2420D'};
+			SET Environment.Variables.LabelIdList[] = LIST {'supervisingProviderName','supervisingProviderSecondaryIdentification',
+			'Service Facility LocationSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'supervisingPrvName','supervisingPrvName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	
+		 			 	SET Environment.Variables.IdList[] = LIST {'nm1','n3n4','ref','per'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4','ref','per'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420E','2420E'};
+			SET Environment.Variables.LabelIdList[] = LIST {'orderingProviderName','orderingProviderAddressCityStateZIPCode',
+			'orderingProviderSecondaryIdentification','orderingProviderContactInformation'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'orderingPrvName','orderingPrvName','orderingPrvName','orderingPrvName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+		 	SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420F','2420F'};
+			SET Environment.Variables.LabelIdList[] = LIST {'referringProviderName','referringProviderSecondaryIdentification'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'orderingPrvName','orderingPrvName'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+		
+		 	 	SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420G','2420G'};
+			SET Environment.Variables.LabelIdList[] = LIST {'ambulancePickUpLocation','ambulancePickUpLocationAddressCityStateZIPCode'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'ambulancePickupLoc','ambulancePickupLoc'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+		 	 	 	SET Environment.Variables.IdList[] = LIST {'nm1','n3n4'};
+			SET Environment.Variables.FieldList[] = LIST {'nm1','n3_n4'};
+			SET Environment.Variables.LoopIdList[] = LIST {'2420H','2420H'};
+			SET Environment.Variables.LabelIdList[] = LIST {'ambulanceDropOffLocation','ambulanceDropOffLocationAddressCityStateZIPCode'};
+			 SET Environment.Variables.FieldRef[] =  LIST {'ambulanceDropoffLoc','ambulanceDropoffLoc'};	
+			 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Line ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+		 	 
+		 	 DECLARE Ref_Adj REFERENCE TO Ref_svcLines.adjustments.Item[1];
+		 	 WHILE(LASTMOVE(Ref_Adj)) DO  
+				 	SET Environment.Variables.IdList[] = LIST {'svd','cas','dtp','amt'};
+					SET Environment.Variables.FieldList[] = LIST {'svd','cas','dtp','amt'};
+					SET Environment.Variables.LoopIdList[] = LIST {'2430','2430','2430','2430'};
+					SET Environment.Variables.LabelIdList[] = LIST {'lineAdjudicationInformation','lineAdjustment','lineCheckOrRemittanceDate','remainingPatientLiability'};
+					 SET Environment.Variables.FieldRef[] =  LIST {'lineAdjInfo','lineAdjInfo','lineAdjInfo','lineAdjInfo'};	
+					 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Adj ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+				  MOVE Ref_Adj NEXTSIBLING;
+			  END WHILE;
+			  
+			  
+			  
+		 		 DECLARE Ref_Doc REFERENCE TO Ref_svcLines.documents.Item[1];
+		 		 WHILE(LASTMOVE(Ref_Doc)) DO 
+				 	SET Environment.Variables.IdList[] = LIST {'lq','frm'};
+					SET Environment.Variables.FieldList[] = LIST {'lq','frm'};
+					SET Environment.Variables.LoopIdList[] = LIST {'2440','2440'};
+					SET Environment.Variables.LabelIdList[] = LIST {'formIdentificationCode','supportingDocumentation'};
+					 SET Environment.Variables.FieldRef[] =  LIST {'formIdentificationCode','formIdentificationCode'};	
+					 CALL contructDetails( Ref_OutEnc ,  In_innerLoopCnt ,   Ref_Doc ,true,In_LoopCnt, true,In_LoopCnt1,In_SegIndexLoop,false,In_LoopIndex) ;
+				 	 
+				 	MOVE Ref_Doc NEXTSIBLING;
+		 		END WHILE;
+		 	
+		 	
+		 	
+		 		SET  Environment.Variables.LoopCnt2300= 0;
+		 	 
+		 	 
+			   	 SET Environment.Variables.LoopCnt2300Flag = false;
+			 	 SET In_LoopIndex = In_LoopIndex + 1;
+			MOVE Ref_svcLines NEXTSIBLING;
+			END WHILE;
+			SET In_LoopIndex = 1;
+			SET Environment.Variables.LoopCnt2300SubCnt = 0;
+			SET Environment.Variables.LoopCnt2300 =0;
+	END; 
+	
+		
+		
+		
+	
+	CREATE FUNCTION contructDetails(INOUT Ref_OutEnc REFERENCE, IN In_innerLoopCnt INTEGER, IN Ref_Input REFERENCE, IN Bl_loopReq BOOLEAN 
+		, IN In_LoopCnt INTEGER, IN Bl_innerMostLoop BOOLEAN, IN In_LoopCnt1 INTEGER, IN In_SegIndexLoop INTEGER, IN Bl_subsubMostLoop BOOLEAN,
+		IN In_LoopIndex INTEGER) BEGIN
+		
+			SET Environment.Variables.segId  = '';
+			DECLARE In_EleCnt  INTEGER  1;
+			DECLARE Ref_InLoops 			REFERENCE TO 	Ref_OutEnc;
+			DECLARE Ref_OutSegments,Ref_InnerSegments1 REFERENCE TO Environment;
+			DECLARE In_InSegCnt1 			INTEGER 		1;
+			DECLARE In_tmpLoopCount INTEGER 1;
+			IF(Bl_loopReq) THEN
+				IF(In_LoopCnt =1 ) THEN 
+					CREATE LASTCHILD OF Ref_OutEnc 	IDENTITY(JSON.Array)loops;
+				END IF;
+				MOVE  Ref_InLoops 			 TO 	Ref_OutEnc.loops[<];
+				IF(NOT Bl_innerMostLoop) THEN
+					SET Ref_InLoops.Item[In_LoopCnt].id 			=	Environment.Variables.LoopIdList[1];
+					SET Ref_InLoops.Item[In_LoopCnt].loopIndex 	=	In_LoopIndex;
+					CREATE LASTCHILD OF Ref_InLoops.Item[In_LoopCnt] IDENTITY(JSON.Array)segments;
+					MOVE Ref_InnerSegments1  TO 	Ref_InLoops.Item[In_LoopCnt].segments[<]; 
+					CREATE LASTCHILD OF Ref_InLoops.Item[In_LoopCnt] IDENTITY(JSON.Array)loops;
+					SET Ref_InLoops.Item[In_LoopCnt].loops 	= 'null';
+				ELSE 
+					-- CREATE LASTCHILD OF Ref_InLoops.Item[In_LoopCnt] IDENTITY(JSON.Array)loops;
+					-- SET Environment.Variables.LoopCnt2 = In_LoopCnt1;
+					MOVE  Ref_InLoops 			 TO 	Ref_InLoops.Item[In_LoopCnt-1].loops[<];
+					IF(EXISTS(Ref_InLoops.Item[In_LoopCnt1].loops[])) THEN
+							
+							MOVE  Ref_InLoops 			 TO 	Ref_InLoops.Item[In_LoopCnt1].loops[<];
+						IF(Environment.Variables.LoopCnt2300Flag = true AND EXISTS(Ref_InLoops.Item[Environment.Variables.LoopCnt2].loops[])) THEN
+							SET Environment.Variables.LoopCnt2300 = Environment.Variables.LoopCnt2300 + 1;
+							IF(NOT In_LoopIndex <> 1) THEN 
+								
+								-- SET In_LoopCnt1 = Environment.Variables.LoopCnt2300;
+							ELSE
+							
+								SET In_LoopIndex = Environment.Variables.LoopCnt2300SubCnt;
+								
+							 -- 	SET In_LoopCnt1 = Environment.Variables.LoopCnt2300-1;
+								END IF;
+									SET In_LoopCnt1 = Environment.Variables.LoopCnt2300;
+							MOVE  Ref_InLoops 			 TO 	Ref_InLoops.Item[Environment.Variables.LoopCnt2].loops[<];
+						 	
+						 	
+						ELSE
+							SET Environment.Variables.LoopCnt2 = Environment.Variables.LoopCnt2 + 1;
+							SET In_LoopCnt1 = Environment.Variables.LoopCnt2;
+						END IF;	
+										
+					END IF;
+					
+					
+					SET Ref_InLoops.Item[In_LoopCnt1].id 			=	Environment.Variables.LoopIdList[1];
+					SET Ref_InLoops.Item[In_LoopCnt1].loopIndex 	=	In_LoopIndex;
+					CREATE LASTCHILD OF Ref_InLoops.Item[In_LoopCnt1] IDENTITY(JSON.Array)segments;
+					MOVE Ref_InnerSegments1  TO 	Ref_InLoops.Item[In_LoopCnt1].segments[<];
+					CREATE LASTCHILD OF Ref_InLoops.Item[In_LoopCnt1] IDENTITY(JSON.Array)loops;
+					SET Ref_InLoops.Item[In_LoopCnt1].loops 	= 'null';
+				END IF;
+			ELSE
+				CREATE LASTCHILD OF Ref_OutEnc 	IDENTITY(JSON.Array)segments;
+				MOVE Ref_InnerSegments1 		 TO 	Ref_OutEnc.segments[<];
+			END IF;
+			DECLARE Ref_firstFieldName REFERENCE  TO Environment;
+			DECLARE In_SegIndex INTEGER 1;
+			IF(In_SegIndexLoop <> 1) THEN
+				SET In_SegIndex = In_SegIndexLoop;
+			
+				END IF;
+				DECLARE In_fieldsListCnt INTEGER 1;
+				DECLARE In_firstElementCnt INTEGER 1;
+				DECLARE Bl_firstElementArr BOOLEAN FALSE;
+				DECLARE Bl_middleElementArr BOOLEAN FALSE;
+				DECLARE Ref_FirstElemRef REFERENCE TO Environment;
+				
+			FOR  source AS Environment.Variables.FieldList[]  DO
+			  DECLARE Bl_subElementMovReq BOOLEAN TRUE;
+				IF(Environment.Variables.FieldRef[In_fieldsListCnt] <> '') THEN
+					IF(EXISTS(Ref_Input.{Environment.Variables.FieldRef[In_fieldsListCnt]}.Item[In_firstElementCnt].*[])) THEN
+						MOVE Ref_firstFieldName   TO Ref_Input.{Environment.Variables.FieldRef[In_fieldsListCnt]}.Item[In_firstElementCnt].*;
+						MOVE Ref_FirstElemRef TO  Ref_Input.{Environment.Variables.FieldRef[In_fieldsListCnt]};
+						SET Bl_firstElementArr = TRUE;
+					ELSE
+						MOVE Ref_firstFieldName   TO Ref_Input.{Environment.Variables.FieldRef[In_fieldsListCnt]}.*;
+						
+					END IF;
+				ELSE 
+					MOVE Ref_firstFieldName   TO Ref_Input.*;
+				END IF;
+				SET Ref_InnerSegments1.Item[In_InSegCnt1].id 				=	Environment.Variables.IdList[In_fieldsListCnt];
+				SET Ref_InnerSegments1.Item[In_InSegCnt1].loopId 			=	Environment.Variables.LoopIdList[In_fieldsListCnt];
+				SET Ref_InnerSegments1.Item[In_InSegCnt1].labelId 		=	Environment.Variables.LabelIdList[In_fieldsListCnt];
+				SET Ref_InnerSegments1.Item[In_InSegCnt1].segmentIndex	=	In_SegIndex;--Environment.Variables.segmentIndxLst[In_fieldsListCnt];
+		 		DECLARE Ref_OutElements REFERENCE TO Environment;
+				IF(exists(Ref_InnerSegments1.Item[In_InSegCnt1].elements[])) THEN
+					MOVE Ref_OutElements TO Ref_InnerSegments1.Item[In_InSegCnt1].elements;
+					SET In_EleCnt = Environment.Variables.EleCnt + 1;
+					SET Environment.Variables.EleCnt = 1;
+				ELSE
+					CREATE LASTCHILD OF Ref_InnerSegments1.Item[In_InSegCnt1] AS Ref_OutElements  IDENTITY (JSON.Array)elements;
+				 END IF;
+					DECLARE In_strPos,In_endPos INTEGER 1;
+					IF(CONTAINS(source,'_')) THEN
+						SET In_endPos = POSITION('_' IN source) -1;
+					ELSE
+						SET In_endPos = LENGTH(source);
+					END IF;
+					DECLARE Ch_subField CHARACTER '';
+					SET Ch_subField = SUBSTRING(source FROM In_strPos FOR In_endPos);
+				DECLARE In_subFieldCnt INTEGER 1;
+				DECLARE Ref_subFieldName REFERENCE TO Ref_firstFieldName.Item[In_subFieldCnt];
+				DECLARE Ref_parentFieldName REFERENCE TO Ref_firstFieldName;
+				 X: WHILE(LASTMOVE(Ref_firstFieldName) ) DO 
+				 
+				 	IF(EXISTS(Ref_firstFieldName.Item[In_subFieldCnt].*[]) AND  Bl_subElementMovReq AND STARTSWITH(FIELDNAME(Ref_firstFieldName), Ch_subField))  THEN
+				 		MOVE Ref_subFieldName TO  Ref_firstFieldName;
+				 		MOVE Ref_parentFieldName TO Ref_firstFieldName;
+				 		 MOVE Ref_parentFieldName NEXTSIBLING;
+				 		MOVE Ref_firstFieldName  TO  Ref_firstFieldName.Item[In_subFieldCnt].*;
+				 		SET Bl_subElementMovReq = FALSE;
+				 	END IF;
+					IF( STARTSWITH(FIELDNAME(Ref_firstFieldName), Ch_subField)) THEN
+						DECLARE Ch_FieldRefName CHARACTER FIELDNAME(Ref_firstFieldName);
+						DECLARE In_underscorePos INTEGER 1;
+						SET In_underscorePos = POSITION('_' IN Ch_FieldRefName);
+						SET Ref_OutElements.Item[In_EleCnt].id			=	SUBSTRING(Ch_FieldRefName FROM 1 FOR (In_underscorePos-1));
+						SET Ref_OutElements.Item[In_EleCnt].value		=	FIELDVALUE(Ref_firstFieldName);
+						  SET Ref_OutElements.Item[In_EleCnt].In_LoopCnt =	CAST(In_LoopCnt AS CHARACTER);
+						  SET Ref_OutElements.Item[In_EleCnt].In_LoopCnt1 =	CAST(In_LoopCnt1 AS CHARACTER);
+						  SET Ref_OutElements.Item[In_EleCnt].LoopCnt2300 =	Environment.Variables.LoopCnt2300;
+						  SET Ref_OutElements.Item[In_EleCnt].LoopCnt2 = Environment.Variables.LoopCnt2;
+						 
+						SET Environment.Variables.EleCnt				=   In_EleCnt;
+						SET In_EleCnt  									= 	In_EleCnt +1;
+					END IF;
+				--	 SET Ref_OutElements.Item[In_EleCnt].value22		=	FIELDNAME(Ref_parentFieldName);
+					-- SET Ref_OutElements.Item[In_EleCnt].value23		=	FIELDNAME(Ref_firstFieldName);
+					-- SET Ref_OutElements.Item[In_EleCnt].value24		=	Bl_subElementMovReq;
+				--	 SET Ref_OutElements.Item[In_EleCnt].value25		=	Ch_subField;
+					IF(LASTMOVE(Ref_parentFieldName) AND  STARTSWITH(FIELDNAME(Ref_parentFieldName), Ch_subField) AND
+						NOT STARTSWITH(FIELDNAME(Ref_firstFieldName), Ch_subField) AND NOT Bl_subElementMovReq) THEN
+						
+						 MOVE Ref_parentFieldName   PREVIOUSSIBLING;
+						 IF(LASTMOVE(Ref_parentFieldName)) THEN
+					-- 	 SET Ref_OutElements.Item[In_EleCnt].value26		=	FIELDNAME(Ref_parentFieldName);
+						 		SET Ref_firstFieldName = Ref_parentFieldName;
+						 		SET Ref_parentFieldName = NULL;
+					-- 	 	SET Ref_OutElements.Item[In_EleCnt].value27	=	FIELDNAME(Ref_firstFieldName);	
+						 END IF;
+						END IF; 
+					MOVE Ref_firstFieldName NEXTSIBLING;
+					-- 	SET Ref_OutElements.Item[In_EleCnt].value28	=	FIELDNAME(Ref_firstFieldName);	
+					
+						IF(NOT LASTMOVE(Ref_firstFieldName) AND Bl_firstElementArr) THEN
+					-- 	SET Ref_OutElements.Item[In_EleCnt].value27		=	FIELDNAME(Ref_firstFieldName);
+						SET In_subFieldCnt = In_subFieldCnt + 1;
+						 DECLARE Ch_PrevFieldName CHARACTER	FIELDNAME(Ref_firstFieldName);
+						 		MOVE Ref_firstFieldName  TO  Ref_FirstElemRef.Item[In_subFieldCnt].*;
+	 					 		
+	 					 	 DECLARE Ch_CurrFieldName CHARACTER	FIELDNAME(Ref_firstFieldName);
+	 					 	 IF(Ch_PrevFieldName <> Ch_CurrFieldName) THEN
+							 	SET In_InSegCnt1 = In_InSegCnt1+1;
+								SET In_SegIndex = In_SegIndex + 1;
+								
+								SET In_EleCnt = 1;
+								CALL test(Ref_InnerSegments1,In_fieldsListCnt,In_InSegCnt1, Ref_OutElements,In_SegIndex );
+								END IF;
+					END IF;
+					SET Environment.Variables.fieldName = FIELDNAME(Ref_firstFieldName);
+					IF(STARTSWITH(FIELDNAME(Ref_firstFieldName), 'n3')  OR STARTSWITH(FIELDNAME(Ref_firstFieldName), 'n4') ) THEN
+						IF(CONTAINS(source,'_') AND NOT STARTSWITH(FIELDNAME(Ref_firstFieldName), Ch_subField) ) THEN
+							SET In_strPos = In_endPos +2;
+							SET In_endPos = LENGTH(source) - (In_endPos);
+							SET Ch_subField = SUBSTRING(source FROM In_strPos FOR In_endPos);
+						END IF;
+					END IF;
+					IF(NOT LASTMOVE(Ref_firstFieldName) AND NOT Bl_subElementMovReq AND STARTSWITH(FIELDNAME(Ref_firstFieldName), Ch_subField)) THEN
+						-- SET Ref_OutElements.Item[In_EleCnt].value28		=	FIELDNAME(Ref_firstFieldName);
+						 SET In_subFieldCnt = In_subFieldCnt + 1;
+						 	  DECLARE Ch_PrevFieldName CHARACTER	FIELDNAME(Ref_firstFieldName);
+								
+						 	  MOVE Ref_firstFieldName  TO  Ref_subFieldName.Item[In_subFieldCnt].*;
+	 					 		
+	 					 	 DECLARE Ch_CurrFieldName CHARACTER	FIELDNAME(Ref_firstFieldName);
+	 					 	 
+	 					 	 IF(Ch_PrevFieldName <> Ch_CurrFieldName) THEN
+							 	SET In_InSegCnt1 = In_InSegCnt1+1;
+								SET In_SegIndex = In_SegIndex + 1;
+								SET In_EleCnt = 1;
+								CALL test(Ref_InnerSegments1,In_fieldsListCnt,In_InSegCnt1, Ref_OutElements,In_SegIndex );
+								END IF;
+								
+					END IF;
+					
+					
+				END WHILE ;
+				SET In_InSegCnt1 = In_InSegCnt1+1;
+				SET In_EleCnt = 1;
+				SET In_fieldsListCnt =  In_fieldsListCnt + 1;
+				SET In_SegIndex = 1;
+				SET In_strPos = 1;
+				SET In_endPos = 1;
+				SET Bl_firstElementArr = FALSE;
+				SET Bl_middleElementArr = FALSE;
+				
+				
+			END FOR;
+			SET Environment.Variables.EleCnt = 1;
+			SET Environment.Variables.IdList = NULL;
+			SET Environment.Variables.FieldList = NULL;
+			SET Environment.Variables.LoopIdList = NULL;
+			SET Environment.Variables.LabelIdList =NULL;
+			SET Environment.Variables.segmentIndxLst = NULL;
+			
+	END; 
+	
+	
+	
+	CREATE FUNCTION test(INOUT Ref_InnerSegments1 REFERENCE, IN In_fieldsListCnt INTEGER, IN In_InSegCnt1 INTEGER, INOUT Ref_OutElements REFERENCE, IN In_SegIndex INTEGER ) BEGIN
+		
+		SET Ref_InnerSegments1.Item[In_InSegCnt1].id 				=	Environment.Variables.IdList[In_fieldsListCnt];
+			SET Ref_InnerSegments1.Item[In_InSegCnt1].loopId 			=	Environment.Variables.LoopIdList[In_fieldsListCnt];
+			SET Ref_InnerSegments1.Item[In_InSegCnt1].labelId 		=	Environment.Variables.LabelIdList[In_fieldsListCnt];
+			SET Ref_InnerSegments1.Item[In_InSegCnt1].segmentIndex	=	In_SegIndex;
+	 		CREATE LASTCHILD OF Ref_InnerSegments1.Item[In_InSegCnt1] AS Ref_OutElements  IDENTITY (JSON.Array)elements;
+			-- END IF; 
+	END; 
+
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
